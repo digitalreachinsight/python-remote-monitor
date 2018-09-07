@@ -8,10 +8,13 @@ import socket
 from platform   import system as system_name
 #from subprocess import call   as system_call, DEVNULL, STDOUT
 from subprocess import call   as system_call
-#confy.read_environment_file()
-print ("Running Remote Monitor")
+version = '1.2'
+print ("Running remote monitor version "+version)
+
 system_id = sys.argv[1]
 api_key = sys.argv[2]
+
+
 # (1, 'webconnect', ('Web Page - String')),
 # (2, 'ping', ('Ping')),
 # (3, 'portopen',('Port Open')),
@@ -48,7 +51,7 @@ def ping(host):
     ping_response = system_call(command) == 0
     return ping_response
 
-r = requests.get('https://monitor.digitalreach.com.au/mon/get-system-monitor/?system_id='+str(system_id)+'&key='+str(api_key))
+r = requests.get('https://monitor.digitalreach.com.au/mon/get-system-monitor/?system_id='+str(system_id)+'&key='+str(api_key)+'&version='+version)
 json_resp = r.json()
 #print r.text
 obj = json.loads(r.text)
