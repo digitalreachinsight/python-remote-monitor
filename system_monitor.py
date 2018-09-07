@@ -9,7 +9,9 @@ from platform   import system as system_name
 #from subprocess import call   as system_call, DEVNULL, STDOUT
 from subprocess import call   as system_call
 #confy.read_environment_file()
-
+print ("Running Remote Monitor")
+system_id = sys.argv[1]
+api_key = sys.argv[2]
 # (1, 'webconnect', ('Web Page - String')),
 # (2, 'ping', ('Ping')),
 # (3, 'portopen',('Port Open')),
@@ -46,7 +48,7 @@ def ping(host):
     ping_response = system_call(command) == 0
     return ping_response
 
-r = requests.get('https://monitor.digitalreach.com.au/mon/get-system-monitor/?system_id=1&key=ZIXQ6N8K8S18Z1GOW9BYGM217GETJSZBWLSC64ER9FWS6LHY4VR4WXKP1TPL59ED262KFE331C99ZD7R85RD8JR1NNDBNW1T8Z1G')
+r = requests.get('https://monitor.digitalreach.com.au/mon/get-system-monitor/?system_id='+str(system_id)+'&key='+str(api_key))
 json_resp = r.json()
 #print r.text
 obj = json.loads(r.text)
@@ -66,13 +68,13 @@ for s in obj['system_monitor']:
          found = 'true'
       else:
          found = 'false'
-      r = requests.get('https://monitor.digitalreach.com.au/mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+found.lower()+'&key=ZIXQ6N8K8S18Z1GOW9BYGM217GETJSZBWLSC64ER9FWS6LHY4VR4WXKP1TPL59ED262KFE331C99ZD7R85RD8JR1NNDBNW1T8Z1G')
+      r = requests.get('https://monitor.digitalreach.com.au/mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+found.lower()+'&key='+str(api_key))
    elif s['mon_type_id'] == 2:
       pingresp = str(ping(s['host']))
-      r = requests.get('https://monitor.digitalreach.com.au/mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+pingresp.lower()+'&key=ZIXQ6N8K8S18Z1GOW9BYGM217GETJSZBWLSC64ER9FWS6LHY4VR4WXKP1TPL59ED262KFE331C99ZD7R85RD8JR1NNDBNW1T8Z1G')  
+      r = requests.get('https://monitor.digitalreach.com.au/mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+pingresp.lower()+'&key='+str(api_key))  
    elif s['mon_type_id'] == 3:
       socket_resp = str(socket_connect(s['host'],int(s['port'])))
-      r = requests.get('https://monitor.digitalreach.com.au/mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+socket_resp.lower()+'&key=ZIXQ6N8K8S18Z1GOW9BYGM217GETJSZBWLSC64ER9FWS6LHY4VR4WXKP1TPL59ED262KFE331C99ZD7R85RD8JR1NNDBNW1T8Z1G')
+      r = requests.get('https://monitor.digitalreach.com.au/mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+socket_resp.lower()+'&key='+str(api_key))
    elif s['mon_type_id'] == 4:
       #df -h --output=source,pcent
       pass
