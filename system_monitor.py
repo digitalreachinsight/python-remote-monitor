@@ -9,11 +9,22 @@ from platform   import system as system_name
 #from subprocess import call   as system_call, DEVNULL, STDOUT
 from subprocess import call   as system_call
 version = '1.2'
+host_url = 'https://monitor.digitalreach.com.au/'
 print ("Running remote monitor version "+version)
 
 system_id = sys.argv[1]
 api_key = sys.argv[2]
 
+#file="/etc/machine-id"
+#path=file
+#fp=open(path,'r+');
+machine_id = None
+if os.path.isfile("/etc/machine-id"):
+   machine_id = open("/etc/machine-id", 'r').read().strip()
+#   print machine_id+"-DD"
+if machine_id is None:
+   print ("Machine ID error")
+   exit()
 
 # (1, 'webconnect', ('Web Page - String')),
 # (2, 'ping', ('Ping')),
@@ -51,10 +62,13 @@ def ping(host):
     ping_response = system_call(command) == 0
     return ping_response
 
-r = requests.get('https://monitor.digitalreach.com.au/mon/get-system-monitor/?system_id='+str(system_id)+'&key='+str(api_key)+'&version='+version)
+r = requests.get(host_url+'mon/get-system-monitor/?system_id='+str(system_id)+'&key='+str(api_key)+'&version='+version+'&machine_id='+machine_id)
 json_resp = r.json()
 #print r.text
 obj = json.loads(r.text)
+if obj['result'] == 'error':
+   print (obj['message'])
+   exit()
 print (obj['system_name'])
 
 # system_monitor
@@ -71,13 +85,13 @@ for s in obj['system_monitor']:
          found = 'true'
       else:
          found = 'false'
-      r = requests.get('https://monitor.digitalreach.com.au/mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+found.lower()+'&key='+str(api_key))
+      r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+found.lower()+'&key='+str(api_key))
    elif s['mon_type_id'] == 2:
       pingresp = str(ping(s['host']))
-      r = requests.get('https://monitor.digitalreach.com.au/mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+pingresp.lower()+'&key='+str(api_key))  
+      r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+pingresp.lower()+'&key='+str(api_key))  
    elif s['mon_type_id'] == 3:
       socket_resp = str(socket_connect(s['host'],int(s['port'])))
-      r = requests.get('https://monitor.digitalreach.com.au/mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+socket_resp.lower()+'&key='+str(api_key))
+      r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+socket_resp.lower()+'&key='+str(api_key))
    elif s['mon_type_id'] == 4:
       #df -h --output=source,pcent
       pass
