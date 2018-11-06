@@ -8,7 +8,7 @@ import socket
 from platform   import system as system_name
 #from subprocess import call   as system_call, DEVNULL, STDOUT
 from subprocess import call   as system_call
-version = '1.2'
+version = '1.3'
 host_url = 'https://monitor.digitalreach.com.au/'
 print ("Running remote monitor version "+version)
 
@@ -95,6 +95,10 @@ for s in obj['system_monitor']:
    elif s['mon_type_id'] == 4:
       #df -h --output=source,pcent
       pass
+   elif s['mon_type_id'] == 5:
+      SECURITY_UPDATES = os.popen('apt-get upgrade -s| grep ^Inst |grep security  | wc -l').read()    
+      r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+SECURITY_UPDATES+'&key='+str(api_key))
+
 
 #for i in r:
 #    print (r['system_name'])
