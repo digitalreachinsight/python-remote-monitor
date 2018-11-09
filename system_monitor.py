@@ -8,7 +8,7 @@ import socket
 from platform   import system as system_name
 #from subprocess import call   as system_call, DEVNULL, STDOUT
 from subprocess import call   as system_call
-version = '1.3'
+version = '1.4'
 host_url = 'https://monitor.digitalreach.com.au/'
 print ("Running remote monitor version "+version)
 
@@ -96,8 +96,10 @@ for s in obj['system_monitor']:
       else:
          found = 'false'
       r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+found.lower()+'&key='+str(api_key))
+      print found
    elif s['mon_type_id'] == 2:
       pingresp = str(ping(s['host']))
+      print pingresp
       r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+pingresp.lower()+'&key='+str(api_key))  
    elif s['mon_type_id'] == 3:
       socket_resp = str(socket_connect(s['host'],int(s['port'])))
