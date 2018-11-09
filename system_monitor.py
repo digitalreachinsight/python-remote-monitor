@@ -8,7 +8,7 @@ import socket
 from platform   import system as system_name
 #from subprocess import call   as system_call, DEVNULL, STDOUT
 from subprocess import call   as system_call
-version = '1.5'
+version = '1.6'
 host_url = 'https://monitor.digitalreach.com.au/'
 print ("Running remote monitor version "+version)
 
