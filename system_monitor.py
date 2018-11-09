@@ -77,11 +77,21 @@ for s in obj['system_monitor']:
    print (s['mon_type_id'])
    
    if s['mon_type_id'] == 1:
-      a = requests.get(s['host'])
+      a = None
+      html_str = ''
+      try:
+         a = requests.get(s['host'])
+      except Exception as e:
+         a = None
+         html_str = ''
+         pass
+
+      if a:
+          html_str = a.text
       #print a.text
       #print (s['string_check'])
       found = 'false'
-      if str(s['string_check']) in a.text:
+      if str(s['string_check']) in html_str:
          found = 'true'
       else:
          found = 'false'
