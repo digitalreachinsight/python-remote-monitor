@@ -96,10 +96,10 @@ for s in obj['system_monitor']:
       else:
          found = 'false'
       r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+found.lower()+'&key='+str(api_key))
-      print found
+      print (found)
    elif s['mon_type_id'] == 2:
       pingresp = str(ping(s['host']))
-      print pingresp
+      print (pingresp)
       r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+pingresp.lower()+'&key='+str(api_key))  
    elif s['mon_type_id'] == 3:
       socket_resp = str(socket_connect(s['host'],int(s['port'])))
