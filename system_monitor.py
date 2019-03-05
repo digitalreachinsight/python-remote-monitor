@@ -6,9 +6,10 @@ import requests
 import json
 import socket
 from platform   import system as system_name
+import subprocess, platform
 #from subprocess import call   as system_call, DEVNULL, STDOUT
 from subprocess import call   as system_call
-version = '1.8'
+version = '1.9'
 host_url = 'https://monitor.digitalreach.com.au/'
 print ("Running remote monitor version "+version)
 
@@ -62,16 +63,47 @@ def ping(host):
     ping_response = system_call(command) == 0
     return ping_response
 
+def ping2(mon_type, server='www.google.com', count=1, wait_sec=1):
+    """
+    :rtype: dict or None
+    """
+    resp = {}
+    cmd = "ping -c {} -W {} {}".format(count, wait_sec, server).split(' ')
+    print ("START PING 2")
+    try:
+            output = subprocess.check_output(cmd).decode().strip()
+            lines = output.split("\n")
+            total = lines[-2].split(',')[3].split()[1]
+            loss = lines[-2].split(',')[2].split()[0]
+            timing = lines[-1].split()[3].split('/')
+            resp = {
+                'type': 'rtt',
+                'min': timing[0],
+                'avg': timing[1],
+                'max': timing[2],
+                'mdev': timing[3],
+                'total': total,
+                'loss': loss,
+            }
+    except Exception as e:
+            print(e)
+            resp = {'avg': None,'loss' : '100%'}
+    if mon_type == 6:
+        return resp['avg']
+    if mon_type == 7:
+        return resp['loss']
+
+# system_monitor
+
 r = requests.get(host_url+'mon/get-system-monitor/?system_id='+str(system_id)+'&key='+str(api_key)+'&version='+version+'&machine_id='+machine_id)
 json_resp = r.json()
-#print r.text
+print (r.text)
 obj = json.loads(r.text)
 if obj['result'] == 'error':
    print (obj['message'])
    exit()
 print (obj['system_name'])
 
-# system_monitor
 for s in obj['system_monitor']:
    print (s['check_name'])
    print (s['mon_type_id'])
@@ -110,6 +142,14 @@ for s in obj['system_monitor']:
    elif s['mon_type_id'] == 5:
       SECURITY_UPDATES = os.popen('apt-get upgrade -s| grep ^Inst |grep security  | wc -l').read()    
       r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+SECURITY_UPDATES+'&key='+str(api_key))
+   elif s['mon_type_id'] == 6:
+      pingresp = str(ping2(s['mon_type_id'], s['host'],10,1))
+      print (pingresp)
+      r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+pingresp.lower()+'&key='+str(api_key))
+   elif s['mon_type_id'] == 7:
+      pingresp = str(ping2(s['mon_type_id'], s['host'],10,1))
+      print (pingresp)
+      r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+pingresp.lower()+'&key='+str(api_key))
 
 
 #for i in r:
