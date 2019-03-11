@@ -9,7 +9,7 @@ from platform   import system as system_name
 import subprocess, platform
 #from subprocess import call   as system_call, DEVNULL, STDOUT
 from subprocess import call   as system_call
-version = '1.10'
+version = '1.11'
 host_url = 'https://monitor.digitalreach.com.au/'
 print ("Running remote monitor version "+version)
 
@@ -64,7 +64,9 @@ def ping(host):
     return ping_response
 
 def cpu_usage():
-   cpu_usage = "echo $[100-$(vmstat 1 2|tail -1|awk '{print $15}')]"
+   #cpu_usage = "echo $[100-$(vmstat 1 2|tail -1|awk '{print $15}')]"
+   # all cpu cores
+   cpu_usage = "echo $[$(vmstat 1 2|tail -1|awk '{print $13}')]"
    cpu_resp = system_call(cpu_usage, shell=True) 
    return cpu_resp
 
