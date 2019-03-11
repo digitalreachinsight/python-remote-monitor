@@ -9,7 +9,7 @@ from platform   import system as system_name
 import subprocess, platform
 #from subprocess import call   as system_call, DEVNULL, STDOUT
 from subprocess import call   as system_call
-version = '1.9'
+version = '1.10'
 host_url = 'https://monitor.digitalreach.com.au/'
 print ("Running remote monitor version "+version)
 
@@ -62,6 +62,11 @@ def ping(host):
 #    ping_response = system_call(command, stdout=DEVNULL, stderr=STDOUT) == 0
     ping_response = system_call(command) == 0
     return ping_response
+
+def cpu_usage():
+   cpu_usage = "echo $[100-$(vmstat 1 2|tail -1|awk '{print $15}')]"
+   cpu_resp = system_call(cpu_usage, shell=True) 
+   return cpu_resp
 
 def ping2(mon_type, server='www.google.com', count=1, wait_sec=1):
     """
@@ -150,6 +155,10 @@ for s in obj['system_monitor']:
       pingresp = str(ping2(s['mon_type_id'], s['host'],10,1))
       print (pingresp)
       r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+pingresp.lower()+'&key='+str(api_key))
+   elif s['mon_type_id'] == 8:
+      cpuresp = str(cpu_usage())
+      print (cpuresp)
+      r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+cpuresp+'&key='+str(api_key))
 
 
 #for i in r:
