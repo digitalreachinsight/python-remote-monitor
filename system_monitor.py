@@ -66,9 +66,13 @@ def ping(host):
 def cpu_usage():
    #cpu_usage = "echo $[100-$(vmstat 1 2|tail -1|awk '{print $15}')]"
    # all cpu cores
-   cpu_usage = "echo $[$(vmstat 1 2|tail -1|awk '{print $13}')]"
-   cpu_resp = system_call(cpu_usage, shell=True) 
-   return cpu_resp
+#   cpu_usage = "echo $[$(vmstat 1 2|tail -1|awk '{print $13}')]"
+   cpu_usage = "echo $(vmstat 1 2|tail -1|awk '{print $13}')"
+#   cpu_resp = system_call(cpu_usage, shell=True)
+   cpu_resp = subprocess.Popen("echo $(vmstat 1 2|tail -1|awk '{print $13}')", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+   p_stdout = cpu_resp.stdout.read()
+   p_stderr = cpu_resp.stderr.read()
+   return p_stdout.decode('utf-8') 
 
 def ping2(mon_type, server='www.google.com', count=1, wait_sec=1):
     """
@@ -159,6 +163,7 @@ for s in obj['system_monitor']:
       r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+pingresp.lower()+'&key='+str(api_key))
    elif s['mon_type_id'] == 8:
       cpuresp = str(cpu_usage())
+      print ("CPU USAGE")
       print (cpuresp)
       r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+cpuresp+'&key='+str(api_key))
 
