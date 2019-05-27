@@ -9,7 +9,7 @@ from platform   import system as system_name
 import subprocess, platform
 #from subprocess import call   as system_call, DEVNULL, STDOUT
 from subprocess import call   as system_call
-version = '1.14'
+version = '1.15'
 host_url = 'https://monitor.digitalreach.com.au/'
 print ("Running remote monitor version "+version)
 
@@ -73,6 +73,20 @@ def cpu_usage():
    p_stdout = cpu_resp.stdout.read()
    p_stderr = cpu_resp.stderr.read()
    return p_stdout.decode('utf-8') 
+
+def memory():
+    mem_resp = subprocess.Popen("free -m | grep 'Mem:' | awk '/Mem:/ { print $2.\":\"$3.\":\"$4 } /buff\/cache/ { print $3 }'", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+    p_stdout = mem_resp.stdout.read()
+    p_stderr = mem_resp.stderr.read()
+    print (p_stdout.decode('utf-8'))
+    return p_stdout.decode('utf-8')
+
+def swap():
+    mem_resp = subprocess.Popen("free -m | grep 'Swap:' | awk '/Swap:/ { print $2.\":\"$3.\":\"$4 } /buff\/cache/ { print $3 }'", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+    p_stdout = mem_resp.stdout.read()
+    p_stderr = mem_resp.stderr.read()
+    print (p_stdout.decode('utf-8'))
+    return p_stdout.decode('utf-8')
 
 def ping2(mon_type, server='www.google.com', count=1, wait_sec=1):
     """
@@ -167,6 +181,15 @@ for s in obj['system_monitor']:
       print (cpuresp)
       r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+cpuresp+'&key='+str(api_key))
 
+   elif s['mon_type_id'] == 9:
+      memory = str(memory())
+      print (host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+memory+'&key='+str(api_key))
+      r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+memory+'&key='+str(api_key))
+      #print (r)
+   elif s['mon_type_id'] == 10:
+      swap = str(swap())
+      r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+swap+'&key='+str(api_key))
+      #print (r)
 
 #for i in r:
 #    print (r['system_name'])
