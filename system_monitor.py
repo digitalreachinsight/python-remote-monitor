@@ -5,11 +5,12 @@ import sys
 import requests
 import json
 import socket
+import re
 from platform   import system as system_name
 import subprocess, platform
 #from subprocess import call   as system_call, DEVNULL, STDOUT
 from subprocess import call   as system_call
-version = '1.15'
+version = '1.16'
 host_url = 'https://monitor.digitalreach.com.au/'
 print ("Running remote monitor version "+version)
 
@@ -73,6 +74,19 @@ def cpu_usage():
    p_stdout = cpu_resp.stdout.read()
    p_stderr = cpu_resp.stderr.read()
    return p_stdout.decode('utf-8') 
+
+def disk():
+    #df -h | grep '^/dev/'
+    disk_array = []
+    disk_resp = subprocess.Popen("df -h  | grep '^/dev/' ", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+    p_stdout = disk_resp.stdout.read()
+    p_stderr = disk_resp.stderr.read()
+    resp = p_stdout.decode('utf-8')
+    resp_array = resp.splitlines()
+    for row in resp_array:
+        line_array = re.split("\s+", row) 
+        disk_array.append(line_array)
+    return disk_array 
 
 def memory():
     mem_resp = subprocess.Popen("free -m | grep 'Mem:' | awk '/Mem:/ { print $2.\":\"$3.\":\"$4 } /buff\/cache/ { print $3 }'", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
@@ -162,7 +176,11 @@ for s in obj['system_monitor']:
       socket_resp = str(socket_connect(s['host'],int(s['port'])))
       r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+socket_resp.lower()+'&key='+str(api_key))
    elif s['mon_type_id'] == 4:
+      disk_resp = disk()
+      data = {'disks': json.dumps(disk_resp),} 
+      r = requests.post(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+''+'&key='+str(api_key), data = data)
       #df -h --output=source,pcent
+      #df -h | grep '^/dev/'
       pass
    elif s['mon_type_id'] == 5:
       SECURITY_UPDATES = os.popen('apt-get upgrade -s| grep ^Inst |grep security  | wc -l').read()    
