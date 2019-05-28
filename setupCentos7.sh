@@ -1,6 +1,8 @@
 #!/bin/bash
 
-yum install python3 virtualenv python3-pip git -y
+yum install python34 python-pip git -y
+pip install -U pip
+pip install -U virtualenv
 cd /usr/lib/
 git clone https://github.com/digitalreachinsight/python-remote-monitor.git 
 cd /usr/lib/python-remote-monitor/
