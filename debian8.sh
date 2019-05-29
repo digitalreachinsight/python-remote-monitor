@@ -1,5 +1,5 @@
 #!/bin/bash
-
+apt update
 apt install python3 virtualenv python3-pip git -y
 cd /usr/lib/
 git clone https://github.com/digitalreachinsight/python-remote-monitor.git 
