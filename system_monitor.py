@@ -10,7 +10,7 @@ from platform   import system as system_name
 import subprocess, platform
 #from subprocess import call   as system_call, DEVNULL, STDOUT
 from subprocess import call   as system_call
-version = '1.16'
+version = '1.17'
 host_url = 'https://monitor.digitalreach.com.au/'
 print ("Running remote monitor version "+version)
 
@@ -101,6 +101,22 @@ def swap():
     p_stderr = mem_resp.stderr.read()
     print (p_stdout.decode('utf-8'))
     return p_stdout.decode('utf-8')
+
+def nettraf():
+    pass 
+
+    nettraf_array = []
+    nettraf_resp = subprocess.Popen('cat /proc/net/dev  | grep -v "|"', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+    p_stdout = nettraf_resp.stdout.read()
+    p_stderr = nettraf_resp.stderr.read()
+    resp = p_stdout.decode('utf-8')
+    resp_array = resp.splitlines()
+    for row in resp_array:
+        row = re.sub("^\s+", "", row)
+        line_array = re.split("\s+", row)
+        nettraf_array.append(line_array)
+    return nettraf_array
+
 
 def ping2(mon_type, server='www.google.com', count=1, wait_sec=1):
     """
@@ -198,7 +214,6 @@ for s in obj['system_monitor']:
       print ("CPU USAGE")
       print (cpuresp)
       r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+cpuresp+'&key='+str(api_key))
-
    elif s['mon_type_id'] == 9:
       memory = str(memory())
       print (host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+memory+'&key='+str(api_key))
@@ -208,7 +223,12 @@ for s in obj['system_monitor']:
       swap = str(swap())
       r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+swap+'&key='+str(api_key))
       #print (r)
-
+   elif s['mon_type_id'] == 11:
+      net_traf = nettraf()
+      data = {'nettraf': json.dumps(net_traf),}
+      r = requests.post(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+''+'&key='+str(api_key), data = data)
+#      print (net_traf) 
+     #/proc/net/dev
 #for i in r:
 #    print (r['system_name'])
 
