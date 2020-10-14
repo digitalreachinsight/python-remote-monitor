@@ -6,6 +6,7 @@ import requests
 import json
 import socket
 import re
+import threading
 from netaddr import IPAddress
 from platform   import system as system_name
 import subprocess, platform
@@ -149,7 +150,7 @@ def scan_for_devices():
     r = requests.post(host_url+'mon/update-system/?system_id='+str(system_id)+'&key='+str(api_key)+'&version='+version, data = data)
     print (r.text)
 
-    return True 
+    #return True 
 
     #command = ['nbtscan 10.1.1.0-255']
 
@@ -284,9 +285,13 @@ if obj['result'] == 'error':
    exit()
 print (obj['system_name'])
 if obj['scan_network_for_devices'] is True:
-   sfd = scan_for_devices()
+   thread = threading.Thread(target=scan_for_devices(), args=())
+   thread.start()
+
+   #sfd = scan_for_devices()
    pass
 
+print ("Starting System Checks")
 for s in obj['system_monitor']:
    print (s['check_name'])
    print (s['mon_type_id'])
