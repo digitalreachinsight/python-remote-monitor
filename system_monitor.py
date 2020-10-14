@@ -6,11 +6,12 @@ import requests
 import json
 import socket
 import re
+from netaddr import IPAddress
 from platform   import system as system_name
 import subprocess, platform
 #from subprocess import call   as system_call, DEVNULL, STDOUT
 from subprocess import call   as system_call
-version = '1.17'
+version = '1.18'
 host_url = 'https://monitor.digitalreach.com.au/'
 print ("Running remote monitor version "+version)
 
@@ -33,6 +34,9 @@ if machine_id is None:
 # (3, 'portopen',('Port Open')),
 # (4, 'diskcheck', ('Disk Check'))
 
+#nbtscan 10.1.1.0-255
+#arp -a
+
 def socket_connect(host,port):
     #print ("SOCKET")
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -49,6 +53,124 @@ def socket_connect(host,port):
     else:
        return False
 
+def scan_for_devices():
+    #intefaces_lookup = ['ifconfig']
+    #il = system_call(intefaces_lookup)
+    il = subprocess.Popen("route -n", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+    p_stdout = il.stdout.read()
+    p_stderr = il.stderr.read()
+    il_lines = p_stdout.decode('utf-8').split("\n")
+    networks = []
+    for i in il_lines:
+        row = re.split(r'\s+', i)
+        if len(row) > 1:
+           try: 
+                IPAddress(row[0])
+                network = row[0]
+                if network != '0.0.0.0':
+                   netmask = row[2]
+                   prefix_network = IPAddress(netmask).netmask_bits()
+                   networks.append(str(network)+'/'+str(prefix_network))
+           except:
+                pass
+                #print ('invalid ip')
+    print (networks)
+    
+        #print (i)
+    devices_found = []
+    #for n in networks:
+    #      il = subprocess.Popen("nbtscan "+n, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+    #      p_stdout = il.stdout.read()
+    #      p_stderr = il.stderr.read()
+    #      nb_lines = p_stdout.decode('utf-8').split("\n")
+    #      for h in nb_lines:
+    #           row = re.split(r'\s+', h)
+    #           try:
+    #               IPAddress(row[0])
+    #               nb_ip = row[0]
+    #               netbios_name = row[1]
+    #               #print (nb_ip)
+    #               #print (netbios_name)
+    #               devices_found.append({'netbios_name': netbios_name,'ip':nb_ip})
+    #               
+    #           except:
+    #               pass
+    #               #print ('invalid ip')
+    #print (p_stdout.decode('utf-8'))
+    arp = subprocess.Popen("arp | grep -v incomplete | grep -v 'Address' ", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+    p_stdout = arp.stdout.read()
+    p_stderr = arp.stderr.read()
+    arp_lines = p_stdout.decode('utf-8').split("\n")
+    for a in arp_lines:
+        row = re.split(r'\s+', a)
+        if len(row) > 2:
+           arp_ip = row[0]
+           arp_mac = row[2]
+           dfcount = 0
+           #found = False
+           #for df in devices_found:
+           #    if df['ip'] == arp_ip:
+           #        found=True
+           #        devices_found[dfcount]['mac'] = arp_mac
+           #    dfcount = dfcount + 1
+           #if found is False:
+           devices_found.append({'netbios_name':'', 'ip': arp_ip, 'mac': arp_mac}) 
+
+    for n in networks:
+          il = subprocess.Popen("nbtscan "+n, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+          p_stdout = il.stdout.read()
+          p_stderr = il.stderr.read()
+          nb_lines = p_stdout.decode('utf-8').split("\n")
+          for h in nb_lines:
+               row = re.split(r'\s+', h)
+               try:
+                   IPAddress(row[0])
+                   nb_ip = row[0]
+                   netbios_name = row[1]
+
+                   found = False
+                   dfcount = 0
+                   for df in devices_found:
+                        if df['ip'] == nb_ip:
+                              devices_found[dfcount]['netbios_name'] = netbios_name
+                        dfcount = dfcount + 1
+                   #print (nb_ip)
+                   #print (netbios_name)
+                   #devices_found.append({'netbios_name': netbios_name,'ip':nb_ip})
+                   
+               except:
+                   pass
+                   #print ('invalid ip')
+    #print (p_stdout.decode('utf-8'))
+
+ 
+    print (devices_found)
+    data = {'devices': json.dumps(devices_found),}
+    r = requests.post(host_url+'mon/update-system/?system_id='+str(system_id)+'&key='+str(api_key)+'&version='+version, data = data)
+    print (r.text)
+
+    return True 
+
+    #command = ['nbtscan 10.1.1.0-255']
+
+def ping_name(mon_type_id,host,mac_address, ip_addr):
+      print ("PING NAME")
+      print (host) 
+
+      arp = subprocess.Popen("arp -n | grep -v incomplete | grep -v 'Address' | grep '"+mac_address+"' | awk '{print $1}' | sed 's/[()]//g'", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+      p_stdout = arp.stdout.read()
+      p_stderr = arp.stderr.read()
+      ip_address = p_stdout.decode('utf-8')
+      if len(ip_address) > 6:
+        pass
+      else:
+         ip_address = ip_addr
+      print (ip_address)
+      pr = ping(ip_address)
+      print (pr)
+      return str(pr)
+
+
 def ping(host):
     """
     Returns True if host (str) responds to a ping request.
@@ -62,6 +184,8 @@ def ping(host):
     # Pinging
 #    ping_response = system_call(command, stdout=DEVNULL, stderr=STDOUT) == 0
     ping_response = system_call(command) == 0
+    print ("PING")
+    print (ping_response)
     return ping_response
 
 def cpu_usage():
@@ -118,6 +242,7 @@ def nettraf():
     return nettraf_array
 
 
+
 def ping2(mon_type, server='www.google.com', count=1, wait_sec=1):
     """
     :rtype: dict or None
@@ -158,6 +283,9 @@ if obj['result'] == 'error':
    print (obj['message'])
    exit()
 print (obj['system_name'])
+if obj['scan_network_for_devices'] is True:
+   sfd = scan_for_devices()
+   pass
 
 for s in obj['system_monitor']:
    print (s['check_name'])
@@ -227,6 +355,11 @@ for s in obj['system_monitor']:
       net_traf = nettraf()
       data = {'nettraf': json.dumps(net_traf),}
       r = requests.post(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+''+'&key='+str(api_key), data = data)
+   elif s['mon_type_id'] == 12:
+      pingresp = ping_name(s['mon_type_id'],s['host'],s['mac_address'], s['ip_address'])
+      r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+pingresp.lower()+'&key='+str(api_key))   
+
+
 #      print (net_traf) 
      #/proc/net/dev
 #for i in r:

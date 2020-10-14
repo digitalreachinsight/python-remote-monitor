@@ -1,6 +1,6 @@
 #!/bin/bash
 apt-get update
-apt install python3 python-virtualenv python3-pip git -y
+apt install python3 python-virtualenv python3-pip git nbtscan nmap -y
 cd /usr/lib/
 git clone https://github.com/digitalreachinsight/python-remote-monitor.git 
 cd /usr/lib/python-remote-monitor/

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-yum install python36 python-pip git -y
+yum install python36 python-pip git nbtscan nmap -y
 pip install -U pip
 pip install -U virtualenv
 cd /usr/lib/
