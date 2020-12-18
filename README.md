@@ -2,9 +2,11 @@
 # All scripts are run as user drmonitor after installation.
 
 #ubuntu 14.04 installer
+
 curl https://raw.githubusercontent.com/digitalreachinsight/python-remote-monitor/master/ubuntu14.04.sh | bash
 
 #ubuntu 16.04 installer
+
 curl https://raw.githubusercontent.com/digitalreachinsight/python-remote-monitor/master/ubuntu16.04.sh | bash
 
 #ubuntu 18.04 installer
