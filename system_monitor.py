@@ -12,7 +12,7 @@ from platform   import system as system_name
 import subprocess, platform
 #from subprocess import call   as system_call, DEVNULL, STDOUT
 from subprocess import call   as system_call
-version = '1.18'
+version = '1.19'
 host_url = 'https://monitor.digitalreach.com.au/'
 print ("Running remote monitor version "+version)
 
@@ -37,6 +37,14 @@ if machine_id is None:
 
 #nbtscan 10.1.1.0-255
 #arp -a
+def check_if_file_exists(path):
+    isFile = os.path.isfile(path) 
+    return isFile
+
+def check_if_dir_exists(path):
+    isDir = os.path.isdir(path)
+    return isDir
+
 
 def socket_connect(host,port):
     #print ("SOCKET")
@@ -363,8 +371,15 @@ for s in obj['system_monitor']:
    elif s['mon_type_id'] == 12:
       pingresp = ping_name(s['mon_type_id'],s['host'],s['mac_address'], s['ip_address'])
       r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+pingresp.lower()+'&key='+str(api_key))   
+   elif s['mon_type_id'] == 13:
+       fd_exists = check_if_dir_exists(str(s['string_check']))
+       r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+str(fd_exists)+'&key='+str(api_key))
+   elif s['mon_type_id'] == 14:
+       fd_exists = check_if_file_exists(str(s['string_check']))
+       r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+str(fd_exists)+'&key='+str(api_key))
 
 
+       
 #      print (net_traf) 
      #/proc/net/dev
 #for i in r:
