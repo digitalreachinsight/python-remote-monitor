@@ -13,6 +13,9 @@ curl https://raw.githubusercontent.com/digitalreachinsight/python-remote-monitor
 #ubuntu 20.04 installer
 curl https://raw.githubusercontent.com/digitalreachinsight/python-remote-monitor/master/ubuntu20.04.sh | bash
 
+#ubuntu 22.04 installer
+curl https://raw.githubusercontent.com/digitalreachinsight/python-remote-monitor/master/ubuntu22.04.sh | bash
+
 # Raspberry PI debian installer
 curl https://raw.githubusercontent.com/digitalreachinsight/python-remote-monitor/master/raspberryPI9.4.sh | bash
 
