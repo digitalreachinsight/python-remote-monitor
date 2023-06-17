@@ -12,7 +12,7 @@ from platform   import system as system_name
 import subprocess, platform
 #from subprocess import call   as system_call, DEVNULL, STDOUT
 from subprocess import call   as system_call
-version = '1.19'
+version = '1.20'
 host_url = 'https://monitor.digitalreach.com.au/'
 print ("Running remote monitor version "+version)
 
@@ -250,7 +250,13 @@ def nettraf():
         nettraf_array.append(line_array)
     return nettraf_array
 
-
+def get_lastlogins():
+    last_logins = []
+    last_logins_resp = subprocess.Popen('last -wiFa -s -3days | grep -v "system boot"', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+    p_stdout = last_logins_resp.stdout.read()
+    p_stderr = last_logins_resp.stderr.read()
+    resp = p_stdout.decode('utf-8')    
+    return resp
 
 def ping2(mon_type, server='www.google.com', count=1, wait_sec=1):
     """
@@ -376,12 +382,8 @@ for s in obj['system_monitor']:
        r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+str(fd_exists)+'&key='+str(api_key))
    elif s['mon_type_id'] == 14:
        fd_exists = check_if_file_exists(str(s['string_check']))
-       r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+str(fd_exists)+'&key='+str(api_key))
-
-
-       
-#      print (net_traf) 
-     #/proc/net/dev
-#for i in r:
-#    print (r['system_name'])
-
+       r = requests.get(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response='+str(fd_exists)+'&key='+str(api_key))      
+   elif s['mon_type_id'] == 15:
+       lastlogins = get_lastlogins()
+       data = {'lastlogins': json.dumps(lastlogins),}       
+       r = requests.post(host_url+'mon/update-system-monitor/?system_monitor_id='+str(s['check_id'])+'&response=''&key='+str(api_key), data = data)
